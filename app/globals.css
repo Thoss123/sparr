@@ -1,26 +1,304 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #0f172a;
+  --accent: #2563eb;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+a[href^="#"] {
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  button:not(:disabled):hover,
+  a[href^="#"]:hover {
+    transform: translateY(-1px);
+  }
+}
+
+button:not(:disabled):active,
+a[href^="#"]:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* ── Glassmorphism ─────────────────────────────────────────────────────────── */
+
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ── Core animations ──────────────────────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes particle-drift {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  20% { opacity: 0.6; }
+  80% { opacity: 0.3; }
+  100% { transform: translate(var(--dx, 40px), var(--dy, -40px)) scale(0.3); opacity: 0; }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-delay {
+  animation: float 4s ease-in-out 1s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Scroll reveal + stagger ────────────────────────────────────────────────── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s ease-out, transform 0.65s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-32px);
+  transition: opacity 0.65s ease-out, transform 0.65s ease-out;
+}
+
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Stagger delays — apply alongside .reveal or .reveal-left */
+.delay-1 { transition-delay: 0.08s; }
+.delay-2 { transition-delay: 0.18s; }
+.delay-3 { transition-delay: 0.28s; }
+.delay-4 { transition-delay: 0.38s; }
+.delay-5 { transition-delay: 0.48s; }
+
+/* Chaos cards entrance */
+@keyframes chaos-card-in {
+  from { opacity: 0; transform: translateY(20px) rotate(var(--rot, 0deg)); }
+  to   { opacity: 1; transform: translateY(0)    rotate(var(--rot, 0deg)); }
+}
+
+.chaos-card {
+  opacity: 0;
+}
+
+.chaos-card.visible {
+  animation: chaos-card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Particle ──────────────────────────────────────────────────────────────── */
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: particle-drift 3s ease-out infinite;
+}
+
+/* ── Success checkmark (Lottie-style SVG animation) ────────────────────────── */
+
+@keyframes checkmark-circle {
+  0% { stroke-dashoffset: 280; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes checkmark-draw {
+  0% { stroke-dashoffset: 60; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes checkmark-scale {
+  0% { transform: scale(0); opacity: 0; }
+  40% { transform: scale(1.1); opacity: 1; }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes confetti-burst {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--cx, 0), var(--cy, 0)) scale(0); opacity: 0; }
+}
+
+.success-checkmark {
+  animation: checkmark-scale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.success-checkmark .circle {
+  stroke-dasharray: 280;
+  stroke-dashoffset: 280;
+  animation: checkmark-circle 0.8s ease-out 0.2s forwards;
+}
+
+.success-checkmark .check {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: checkmark-draw 0.4s ease-out 0.7s forwards;
+}
+
+.confetti-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: confetti-burst 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Fullscreen overlay ────────────────────────────────────────────────────── */
+
+.fullscreen-overlay {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.fullscreen-overlay-content {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+/* ── Step transitions ──────────────────────────────────────────────────────── */
+
+@keyframes step-enter {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes step-exit {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-30px); }
+}
+
+.step-enter {
+  animation: step-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Glow effects ──────────────────────────────────────────────────────────── */
+
+.glow-blue {
+  box-shadow:
+    0 0 20px rgba(37, 99, 235, 0.15),
+    0 0 60px rgba(37, 99, 235, 0.05);
+}
+
+.glow-blue-lg {
+  box-shadow:
+    0 0 30px rgba(37, 99, 235, 0.2),
+    0 0 80px rgba(37, 99, 235, 0.08),
+    0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Input glow focus ──────────────────────────────────────────────────────── */
+
+.input-glow:focus {
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.15),
+    0 0 20px rgba(37, 99, 235, 0.08);
+}
+
+/* ── Noise grain overlay ───────────────────────────────────────────────────── */
+
+.grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
 }
