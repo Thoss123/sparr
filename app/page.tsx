@@ -94,9 +94,9 @@ const faqs: FaqItem[] = [
   },
   {
     question:
-      "Ist Sparr nur für Freelance-Webdesigner und kleine Agenturen gedacht — oder lässt es sich auch in größeren Teams einsetzen?",
+      "Ist Sparr nur für selbstständige Webdesigner gedacht — oder lässt es sich auch in größeren Teams einsetzen?",
     answer:
-      "Sparr ist bewusst für Freelance-Webdesigner und sehr kleine Web-Agenturen mit 1–3 Personen im DACH-Raum gebaut — nicht für generische Freelancer-, Berater- oder Enterprise-Sales-Teams. Wir fokussieren uns auf Websites, Angebote, Nachfassen und operative Kundenprojekte zwischen Briefing und Launch. Für klassische Groß-Team-Sales-Stacks gibt es passendere Tools.",
+      "Sparr ist bewusst für selbstständige Webdesigner im DACH-Raum gebaut — nicht für generische Freelancer-, Berater- oder Enterprise-Sales-Teams. Wir fokussieren uns auf Websites, Angebote, Nachfassen und operative Kundenprojekte zwischen Briefing und Launch. Für klassische Groß-Team-Sales-Stacks gibt es passendere Tools.",
   },
 ];
 
@@ -204,50 +204,6 @@ export default function Home() {
           >
             <SparrLogo />
           </a>
-          <nav className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
-            <a
-              href="#problem"
-              onClick={handleScrollLink("problem")}
-              className="transition hover:text-slate-900"
-            >
-              Problem
-            </a>
-            <a
-              href="#features"
-              onClick={handleScrollLink("features")}
-              className="transition hover:text-slate-900"
-            >
-              Was Sparr macht
-            </a>
-            <a
-              href="#workflow"
-              onClick={handleScrollLink("workflow")}
-              className="transition hover:text-slate-900"
-            >
-              So funktioniert&apos;s
-            </a>
-            <a
-              href="#angebot"
-              onClick={handleScrollLink("angebot")}
-              className="transition hover:text-slate-900"
-            >
-              Angebot
-            </a>
-            <a
-              href="#kontakt"
-              onClick={handleScrollLink("kontakt")}
-              className="transition hover:text-slate-900"
-            >
-              Kontakt
-            </a>
-            <a
-              href="#faq"
-              onClick={handleScrollLink("faq")}
-              className="transition hover:text-slate-900"
-            >
-              FAQ
-            </a>
-          </nav>
           <a
             href="#waitlist"
             onClick={handleScrollLink("waitlist")}
@@ -267,24 +223,16 @@ export default function Home() {
 
         <div className="mx-auto grid max-w-7xl gap-16 px-6 pb-24 pt-16 lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-10 lg:pt-24">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              Geschlossene Beta – exklusive Plätze
-            </span>
-
-            <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-              Dein KI-Coach für die{" "}
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+              Du sitzt vor sieben Kundenprojekten.{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-                wirklich wichtigen
-              </span>{" "}
-              Entscheidungen.
+                Womit fängst du an?
+              </span>
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
-              Du hast nicht zu wenig Aufgaben – du hast zu wenig Klarheit.
-              Sparr behält deine Kundenprojekte im Blick, plant deinen Tag und
-              schreibt mit dir die Nachfass-Mails, die heute neue Aufträge und
-              Abnahmen bringen.
+              Sparr liest deine Projekte und schickt dir jeden Morgen um 8:00
+              Uhr die drei Schritte, die heute am meisten Geld bringen.
             </p>
 
             <form
@@ -537,6 +485,49 @@ export default function Home() {
 
       {/* BENTO: WARUM SETUP SCHEITERT */}
       <section id="problem" className="border-t border-slate-200/60 bg-white">
+        <div className="mx-auto max-w-5xl px-6 pt-24 lg:px-10">
+          <div className="grid items-center gap-12 md:grid-cols-[auto,1fr]">
+            <div className="relative mx-auto h-32 w-32 shrink-0 md:h-40 md:w-40">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-200 to-indigo-200 blur-2xl" />
+              <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-slate-200 to-slate-300 shadow-xl">
+                <Image
+                  src="/Portrait.png"
+                  alt="Thomas Hruby, Gründer von Sparr"
+                  fill
+                  sizes="(min-width: 768px) 160px, 128px"
+                  className="object-cover object-[50%_42.5%]"
+                />
+              </div>
+            </div>
+            <div>
+              <span className="text-sm font-medium uppercase tracking-wider text-blue-600">
+                Wer baut Sparr?
+              </span>
+              <h2 className="mt-2 text-2xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-3xl">
+                &ldquo;Ich saß vor sieben offenen Kundenprojekten und wusste
+                nicht, welches heute den nächsten Schritt braucht.&rdquo;
+              </h2>
+              <p className="mt-6 text-lg leading-relaxed text-slate-600">
+                Ich bin Thomas und führe selbst eine kleine Webdesign-Agentur.
+                Mein Problem war nie, dass ich Tasks vergessen habe. Mein
+                Problem war, dass ich vor sieben laufenden Kundenprojekten
+                saß, drei Angeboten, die auf Antwort warteten, einer fast
+                fertigen Website, die auf Abnahme wartete – und keine Ahnung
+                hatte, womit ich heute beginne, damit am Monatsende ein neuer
+                Auftrag, ein abgenommener Launch oder ein verlängerter Retainer
+                steht. Sparr ist genau dafür gebaut – von einem Webdesigner
+                für Webdesigner. Deine digitale rechte Hand, die zwischen
+                Briefing, Nachfassen und Launch den Lärm ausblendet.
+              </p>
+              <div className="mt-6 text-sm font-medium text-slate-900">
+                Thomas
+                <span className="font-normal text-slate-500">
+                  {" "}· Webdesigner & Gründer, Sparr.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-sm font-medium uppercase tracking-wider text-blue-600">
@@ -675,57 +666,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TRUST / FOUNDER STORY */}
-      <section className="bg-[#fafafa]">
-        <div className="mx-auto max-w-5xl px-6 py-24 lg:px-10">
-          <div className="grid items-center gap-12 md:grid-cols-[auto,1fr]">
-            <div className="relative mx-auto h-32 w-32 shrink-0 md:h-40 md:w-40">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-200 to-indigo-200 blur-2xl" />
-              <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-slate-200 to-slate-300 shadow-xl">
-                <Image
-                  src="/Portrait.png"
-                  alt="Thomas Hruby, Gründer von Sparr"
-                  fill
-                  sizes="(min-width: 768px) 160px, 128px"
-                  className="object-cover object-[50%_42.5%]"
-                />
-              </div>
-            </div>
-            <div>
-              <span className="text-sm font-medium uppercase tracking-wider text-blue-600">
-                Wer baut Sparr?
-              </span>
-              <h2 className="mt-2 text-2xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-3xl">
-                &ldquo;Ich saß vor sieben offenen Kundenprojekten und wusste
-                nicht, welches heute den nächsten Schritt braucht.&rdquo;
-              </h2>
-              <p className="mt-6 text-lg leading-relaxed text-slate-600">
-                Ich bin Thomas und führe selbst eine kleine Webdesign-Agentur.
-                Mein Problem war nie, dass ich Tasks vergessen habe. Mein
-                Problem war, dass ich vor sieben laufenden Kundenprojekten
-                saß, drei Angeboten, die auf Antwort warteten, einer fast
-                fertigen Website, die auf Abnahme wartete – und keine Ahnung
-                hatte, womit ich heute beginne, damit am Monatsende ein neuer
-                Auftrag, ein
-                abgenommener Launch oder ein verlängerter Retainer steht.
-                Sparr ist genau dafür gebaut – von einem Webdesigner für
-                Webdesigner und kleine Agenturen. Deine digitale rechte Hand,
-                die zwischen Briefing, Nachfassen und Launch den Lärm
-                ausblendet und dir die schweren Entscheidungen abnimmt.
-              </p>
-              <div className="mt-6 text-sm font-medium text-slate-900">
-                Thomas
-                <span className="font-normal text-slate-500">
-                  {" "}
-                  · Webdesigner & Gründer, Sparr.
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4 STEPS – DARK MODE */}
+      {/* 3 STEPS – DARK MODE */}
       <section id="workflow" className="bg-slate-900 text-white">
         <div className="mx-auto max-w-7xl px-6 py-28 lg:px-10">
           <div className="mx-auto max-w-2xl text-center">
@@ -733,7 +674,7 @@ export default function Home() {
               So funktioniert es
             </span>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              In 4 Schritten zum Fokus
+              In 3 Schritten zum Fokus
             </h2>
             <p className="mt-4 text-lg text-slate-400">
               Vom Onboarding bis zur Abnahme – ohne dass du deinen
@@ -880,16 +821,17 @@ export default function Home() {
                   <span className="text-slate-300">Schritt 3</span>
                 </div>
                 <h3 className="mt-4 text-2xl font-semibold sm:text-3xl">
-                  AI Coaching
+                  Coaching & erledigen lassen
                 </h3>
                 <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-400">
-                  Steckst du beim Webdesign-Angebot für einen neuen Kunden
-                  fest oder verhandelst gerade einen Retainer? Sparr ist dein
-                  strategischer Sparringspartner – 24/7 erreichbar, kennt
-                  deine Kundenprojekte im Detail und gibt dir
-                  Klartext-Antworten statt generischer Ratschläge aus dem
-                  Internet. Preisfragen, Diskussionen über den Leistungsumfang
-                  und schwierige Kunden-Mails löst du nicht mehr alleine.
+                  Steckst du beim Webdesign-Angebot fest oder verhandelst
+                  gerade einen Retainer? Sparr ist dein strategischer
+                  Sparringspartner – 24/7 erreichbar, kennt deine
+                  Kundenprojekte im Detail und gibt dir Klartext statt
+                  generischer Ratschläge. Und wo es konkret wird, packt er
+                  mit an: Er schreibt deine Nachfass-Mails vor, recherchiert
+                  passende Leads und bereitet Angebote vor – du gibst nur
+                  noch das finale Go.
                 </p>
               </div>
               <div className="order-2 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-2xl">
@@ -926,67 +868,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Step 4 – reversed */}
-            <div className="grid items-center gap-12 lg:grid-cols-2">
-              <div className="order-2 lg:order-1 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-2xl">
-                <div className="flex items-center gap-2 border-b border-white/10 pb-3 text-xs text-slate-400">
-                  <span className="h-2 w-2 rounded-full bg-red-400" />
-                  <span className="h-2 w-2 rounded-full bg-yellow-400" />
-                  <span className="h-2 w-2 rounded-full bg-green-400" />
-                  <span className="ml-2">
-                    Entwurf: Follow-up · Müller GmbH
-                  </span>
-                </div>
-                <div className="mt-4 space-y-2 text-sm leading-relaxed text-slate-300">
-                  <div className="text-slate-500">An: m.mueller@firma.de</div>
-                  <div className="text-slate-500">
-                    Betreff: Kurzes Update zum Website-Projekt
-                  </div>
-                  <p className="pt-3">Hallo Herr Müller,</p>
-                  <p>
-                    ich wollte mich kurz melden, da wir letzte Woche über den
-                    nächsten Schritt für Ihr Website-Projekt gesprochen haben.
-                  </p>
-                  <p>
-                    Falls es bei Ihnen aktuell Fragen zum Angebot gibt,
-                    beantworte ich diese gerne in einem 15-min Call diese Woche.
-                  </p>
-                  <p className="text-slate-400">Beste Grüße, Thomas</p>
-                </div>
-                <div className="mt-5 flex gap-2">
-                  <button
-                    type="button"
-                    className="flex-1 rounded-lg border border-white/10 bg-white/5 py-2 text-xs font-medium text-slate-200 transition hover:bg-white/10"
-                  >
-                    Bearbeiten
-                  </button>
-                  <button
-                    type="button"
-                    className="flex-1 rounded-lg bg-blue-500 py-2 text-xs font-medium text-white transition hover:bg-blue-400"
-                  >
-                    Senden ↗
-                  </button>
-                </div>
-              </div>
-              <div className="order-1 lg:order-2">
-                <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-blue-500 text-xs font-bold text-white">
-                    4
-                  </span>
-                  <span className="text-slate-300">Schritt 4</span>
-                </div>
-                <h3 className="mt-4 text-2xl font-semibold sm:text-3xl">
-                  Aufgaben erledigen lassen
-                </h3>
-                <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-400">
-                  Sparr greift dir beim Nachfassen an Kunden aktiv unter die
-                  Arme, recherchiert passende Wunschkunden für neue
-                  Website-Projekte und bereitet komplette Webdesign-Angebote
-                  vor – inklusive Hosting, Wartung und realistischer
-                  Aufwands­schätzung. Du gibst nur noch das finale Go.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -1399,9 +1280,7 @@ export default function Home() {
             Bereit, Ordnung in deine Kundenprojekte zu bringen?
           </h2>
           <p className="mt-4 text-lg text-slate-300">
-            Sichere dir einen der exklusiven Plätze – inklusive 50% Rabatt
-            für die ersten 60 Tage, in denen du Sparr in deinen
-            Projekt-Alltag holst.
+            Kostenlos eintragen. Kein Zahlungsmittel. Kein Druck.
           </p>
           <form
             onSubmit={handleSubmit}
