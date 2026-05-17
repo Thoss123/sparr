@@ -1005,11 +1005,6 @@ export default function Home() {
               Sparr sagt dir nicht nur, was du tun sollst — er erledigt einen
               Teil davon selbst.
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-slate-600">
-              Erst weiß du, wo du beim Webdesign‑Business anfangen musst –
-              dann bekommst du konkrete Hilfe beim Schreiben und Entscheiden –
-              parallel arbeitet Sparr im Hintergrund an Leads und Angeboten.
-            </p>
           </div>
 
           <div className="mx-auto mt-14 grid max-w-5xl gap-5 sm:grid-cols-1 lg:grid-cols-3">
