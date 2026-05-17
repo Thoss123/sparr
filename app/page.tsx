@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, MouseEvent } from "react";
+import { useState, useRef, FormEvent, MouseEvent } from "react";
 import Image from "next/image";
 import {
   LuCompass,
@@ -105,6 +105,8 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [waitlistId, setWaitlistId] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
   const [signupLoading, setSignupLoading] = useState(false);
@@ -460,25 +462,56 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-2xl shadow-slate-900/15 ring-1 ring-slate-900/5">
-            <video
-              className="block w-full"
-              controls
-              playsInline
-              preload="metadata"
-              aria-label="Sparr kurz erklärt – Pitch-Video"
-            >
-              <source src="/pitch.mp4" type="video/mp4" />
-              <p className="mx-auto max-w-lg p-8 text-center text-sm leading-relaxed text-slate-300">
-                Dieses Video wird von deinem Browser nicht unterstützt.{" "}
-                <a
-                  href="/pitch.mp4"
-                  className="font-medium text-blue-400 underline underline-offset-4 hover:text-blue-300"
-                >
-                  Video herunterladen
-                </a>
-              </p>
-            </video>
+          <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-2xl border border-slate-200 shadow-2xl shadow-slate-900/15 ring-1 ring-slate-900/5">
+            {!videoPlaying ? (
+              <button
+                type="button"
+                aria-label="Video abspielen"
+                onClick={() => {
+                  setVideoPlaying(true);
+                  setTimeout(() => {
+                    videoRef.current?.play();
+                  }, 50);
+                }}
+                className="group relative block w-full"
+              >
+                {/* Thumbnail */}
+                <Image
+                  src="/video-thumbnail.png"
+                  alt="Sparr Chat-Vorschau"
+                  width={1280}
+                  height={720}
+                  className="block w-full"
+                  priority
+                />
+                {/* Dark overlay on hover */}
+                <span className="absolute inset-0 bg-black/10 transition-colors duration-200 group-hover:bg-black/20" />
+                {/* Play button */}
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-2xl shadow-black/30 transition-transform duration-200 group-hover:scale-110 sm:h-24 sm:w-24">
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="ml-1.5 h-9 w-9 text-slate-900 sm:h-10 sm:w-10"
+                      fill="currentColor"
+                      aria-hidden
+                    >
+                      <path d="M8 5.14v14l11-7-11-7z" />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            ) : (
+              <video
+                ref={videoRef}
+                className="block w-full bg-slate-950"
+                controls
+                playsInline
+                preload="auto"
+                aria-label="Sparr kurz erklärt – Pitch-Video"
+              >
+                <source src="/pitch.mp4" type="video/mp4" />
+              </video>
+            )}
           </div>
         </div>
       </section>
