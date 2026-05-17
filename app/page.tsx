@@ -1,7 +1,66 @@
 "use client";
 
 import { useState, FormEvent, MouseEvent } from "react";
+import Image from "next/image";
+import {
+  LuCompass,
+  LuCalendarCheck,
+  LuMail,
+  LuTarget,
+  LuPhone,
+  LuGlobe,
+} from "react-icons/lu";
+import { FaWhatsapp } from "react-icons/fa";
 import SurveyOverlay from "./components/SurveyOverlay";
+
+function SparrLogo({
+  variant = "light",
+  size = "md",
+}: {
+  variant?: "light" | "dark" | "footer";
+  size?: "sm" | "md" | "lg";
+}) {
+  const boxSize =
+    size === "lg" ? "h-9 w-9" : size === "sm" ? "h-6 w-6" : "h-8 w-8";
+  const iconSize =
+    size === "lg" ? "h-5 w-5" : size === "sm" ? "h-3 w-3" : "h-4 w-4";
+  const textSize =
+    size === "lg" ? "text-xl" : size === "sm" ? "text-sm" : "text-lg";
+  const boxBg =
+    variant === "dark"
+      ? "bg-white text-slate-900"
+      : "bg-slate-900 text-white";
+  const textColor =
+    variant === "dark" ? "text-white" : "text-slate-900";
+
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span
+        className={`grid place-items-center rounded-lg ${boxSize} ${boxBg}`}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          className={iconSize}
+          aria-hidden
+        >
+          <path
+            d="M5 12l4 4L19 6"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      <span
+        className={`font-semibold tracking-tight ${textSize} ${textColor}`}
+      >
+        Sparr.
+      </span>
+    </span>
+  );
+}
 
 type FaqItem = {
   question: string;
@@ -35,9 +94,9 @@ const faqs: FaqItem[] = [
   },
   {
     question:
-      "Ist Sparr nur für Selbstständige – oder kann ich es auch im größeren Team einsetzen?",
+      "Ist Sparr nur für Freelance-Webdesigner und kleine Agenturen gedacht — oder lässt es sich auch in größeren Teams einsetzen?",
     answer:
-      "Sparr ist bewusst exklusiv für Selbstständige und Einzelkämpfer entwickelt – Freelancer, Berater, Marketer und Agentur-Inhaber. Wir bauen kein zweites Salesforce, sondern deinen persönlichen digitalen Sparringpartner. Für klassische Sales-Teams gibt es bessere Tools.",
+      "Sparr ist bewusst für Freelance-Webdesigner und sehr kleine Web-Agenturen mit 1–3 Personen im DACH-Raum gebaut — nicht für generische Freelancer-, Berater- oder Enterprise-Sales-Teams. Wir fokussieren uns auf Websites, Angebote, Nachfassen und operative Kundenprojekte zwischen Briefing und Launch. Für klassische Groß-Team-Sales-Stacks gibt es passendere Tools.",
   },
 ];
 
@@ -46,6 +105,9 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [waitlistId, setWaitlistId] = useState<string | null>(null);
+  const [signupError, setSignupError] = useState<string | null>(null);
+  const [signupLoading, setSignupLoading] = useState(false);
 
   const scrollToSection = (targetId: string) => {
     const target =
@@ -93,11 +155,38 @@ export default function Home() {
       scrollToSection(targetId);
     };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
-    setSurveyOpen(true);
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    setSignupError(null);
+    setSignupLoading(true);
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        id?: string;
+      };
+      if (!res.ok || !data.id) {
+        setSignupError(
+          data.error ||
+            "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",
+        );
+        setSignupLoading(false);
+        return;
+      }
+      setWaitlistId(data.id);
+      setSubmitted(true);
+      setSurveyOpen(true);
+    } catch {
+      setSignupError("Netzwerkfehler. Bitte versuch es noch einmal.");
+    } finally {
+      setSignupLoading(false);
+    }
   };
 
   return (
@@ -111,25 +200,9 @@ export default function Home() {
           <a
             href="#top"
             onClick={handleScrollLink("top")}
-            className="flex items-center gap-2"
+            className="flex items-center"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-900 text-white">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-4 w-4"
-                aria-hidden
-              >
-                <path
-                  d="M5 12l4 4L19 6"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="text-lg font-semibold tracking-tight">Sparr</span>
+            <SparrLogo />
           </a>
           <nav className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
             <a
@@ -138,6 +211,13 @@ export default function Home() {
               className="transition hover:text-slate-900"
             >
               Problem
+            </a>
+            <a
+              href="#features"
+              onClick={handleScrollLink("features")}
+              className="transition hover:text-slate-900"
+            >
+              Was Sparr macht
             </a>
             <a
               href="#workflow"
@@ -154,6 +234,13 @@ export default function Home() {
               Angebot
             </a>
             <a
+              href="#kontakt"
+              onClick={handleScrollLink("kontakt")}
+              className="transition hover:text-slate-900"
+            >
+              Kontakt
+            </a>
+            <a
               href="#faq"
               onClick={handleScrollLink("faq")}
               className="transition hover:text-slate-900"
@@ -166,7 +253,7 @@ export default function Home() {
             onClick={handleScrollLink("waitlist")}
             className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
           >
-            Auf Warteliste
+            Jetzt Platz sichern
           </a>
         </div>
       </header>
@@ -194,13 +281,13 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
-              Du hast nicht zu wenig Aufgaben – du hast zu wenig Klarheit. Sparr
-              analysiert deine Deals, plant deinen Tag und schreibt mit dir die
-              E-Mails, die heute Umsatz bringen.
+              Du hast nicht zu wenig Aufgaben – du hast zu wenig Klarheit.
+              Sparr behält deine Kundenprojekte im Blick, plant deinen Tag und
+              schreibt mit dir die Nachfass-Mails, die heute neue Aufträge und
+              Abnahmen bringen.
             </p>
 
             <form
-              id="waitlist"
               onSubmit={handleSubmit}
               className="mt-8 flex w-full max-w-lg flex-col gap-3 sm:flex-row"
             >
@@ -215,11 +302,20 @@ export default function Home() {
               <button
                 type="submit"
                 className="h-12 rounded-full bg-slate-900 px-6 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-60"
-                disabled={submitted}
+                disabled={submitted || signupLoading}
               >
-                {submitted ? "Du bist drin ✓" : "Platz sichern"}
+                {submitted
+                  ? "Du bist drin ✓"
+                  : signupLoading
+                    ? "Ein Moment …"
+                    : "Platz sichern"}
               </button>
             </form>
+            {signupError ? (
+              <p className="mt-3 max-w-lg text-xs text-red-600" role="alert">
+                {signupError}
+              </p>
+            ) : null}
 
             <p className="mt-3 flex items-center gap-2 text-xs text-slate-500">
               <svg
@@ -237,9 +333,11 @@ export default function Home() {
                 />
               </svg>
               Kostenloses Eintragen für die Warteliste – kein Zahlungsmittel,
-              kein Commitment.
+              keine Verpflichtung.
             </p>
 
+            {/*
+              Social-proof line vorerst ausgeblendet, bis die Zahl ehrlich ist.
             <div className="mt-6 flex items-center gap-4 text-sm text-slate-500">
               <div className="flex -space-x-2">
                 {["#60a5fa", "#a78bfa", "#34d399", "#fb7185"].map((c) => (
@@ -252,6 +350,7 @@ export default function Home() {
               </div>
               <span>Bereits 240+ Selbstständige auf der Warteliste</span>
             </div>
+            */}
           </div>
 
           {/* GLASSMORPHIC STACK */}
@@ -259,7 +358,7 @@ export default function Home() {
             {/* BG Layer 1: Kanban Board */}
             <div className="absolute left-0 top-0 w-[88%] rotate-[-3deg] rounded-2xl border border-slate-200/70 bg-white/70 p-4 shadow-xl shadow-slate-900/5 backdrop-blur-md">
               <div className="mb-3 flex items-center justify-between text-xs text-slate-500">
-                <span className="font-medium">Deal Pipeline · Q2</span>
+                <span className="font-medium">Offene Aufträge · Q2</span>
                 <span>€ 142.500</span>
               </div>
               <div className="grid grid-cols-3 gap-2 opacity-90">
@@ -305,7 +404,7 @@ export default function Home() {
             {/* Layer 2: Chat (Sparr KI) */}
             <div className="absolute bottom-4 right-0 w-[78%] rotate-[2deg] rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-2xl shadow-slate-900/10 backdrop-blur-xl">
               <div className="mb-4 flex items-center gap-3">
-                <span className="relative grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                <span className="relative grid h-9 w-9 place-items-center rounded-lg bg-slate-900 text-white">
                   <svg
                     viewBox="0 0 24 24"
                     className="h-4 w-4"
@@ -313,15 +412,18 @@ export default function Home() {
                     aria-hidden
                   >
                     <path
-                      d="M12 2l1.8 5.5H19l-4.4 3.2L16.2 16 12 12.8 7.8 16l1.6-5.3L5 7.5h5.2L12 2z"
-                      fill="currentColor"
+                      d="M5 12l4 4L19 6"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                   <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
                 </span>
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-slate-900">
-                    Sparr KI
+                    Sparr.
                   </div>
                   <div className="text-xs text-emerald-600">
                     schreibt gerade...
@@ -331,12 +433,12 @@ export default function Home() {
 
               <div className="space-y-2">
                 <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-slate-100 px-3 py-2 text-sm text-slate-700">
-                  Welche Deals soll ich heute priorisieren?
+                  Welches Kundenprojekt soll ich heute pushen?
                 </div>
                 <div className="ml-auto max-w-[90%] rounded-2xl rounded-tr-md bg-gradient-to-br from-blue-600 to-indigo-600 px-3 py-2 text-sm text-white shadow-md">
-                  Basierend auf deinen offenen Deals empfehle ich, zuerst{" "}
+                  Geh zuerst auf{" "}
                   <span className="font-semibold">Müller GmbH (€ 8.400)</span>{" "}
-                  nachzufassen – liegt seit 9 Tagen offen
+                  – das Angebot liegt seit 9 Tagen ohne Antwort
                   <span className="inline-flex gap-0.5 pl-1 align-middle">
                     <span className="h-1 w-1 animate-pulse rounded-full bg-white/80" />
                     <span className="h-1 w-1 animate-pulse rounded-full bg-white/80 [animation-delay:120ms]" />
@@ -391,6 +493,48 @@ export default function Home() {
         </div>
       </section>
 
+      {/* PITCH VIDEO */}
+      <section
+        aria-label="Sparr kurz erklärt"
+        className="border-t border-slate-200/60 bg-white"
+      >
+        <div className="mx-auto max-w-5xl px-6 py-16 lg:px-10 lg:py-24">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="text-sm font-medium uppercase tracking-wider text-blue-600">
+              Sparr kurz erklärt
+            </span>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              So bringt Sparr Ordnung in deinen Alltag
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-slate-600">
+              Schau dir kurz an, wie Sparr deine Kundenprojekte, Angebote und
+              Nachfass-Mails auf den Punkt bringt.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-2xl shadow-slate-900/15 ring-1 ring-slate-900/5">
+            <video
+              className="block w-full"
+              controls
+              playsInline
+              preload="metadata"
+              aria-label="Sparr kurz erklärt – Pitch-Video"
+            >
+              <source src="/pitch.mp4" type="video/mp4" />
+              <p className="mx-auto max-w-lg p-8 text-center text-sm leading-relaxed text-slate-300">
+                Dieses Video wird von deinem Browser nicht unterstützt.{" "}
+                <a
+                  href="/pitch.mp4"
+                  className="font-medium text-blue-400 underline underline-offset-4 hover:text-blue-300"
+                >
+                  Video herunterladen
+                </a>
+              </p>
+            </video>
+          </div>
+        </div>
+      </section>
+
       {/* BENTO: WARUM SETUP SCHEITERT */}
       <section id="problem" className="border-t border-slate-200/60 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
@@ -399,10 +543,11 @@ export default function Home() {
               Das eigentliche Problem
             </span>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              Warum dein Setup scheitert
+              Warum dein Setup als Webdesigner scheitert
             </h2>
             <p className="mt-4 text-lg text-slate-600">
-              Deine Tools verwalten Chaos. Sie räumen es nicht auf.
+              Deine Tools verwalten das Chaos zwischen drei laufenden
+              Kundenprojekten. Sie räumen es nicht auf.
             </p>
           </div>
 
@@ -427,8 +572,9 @@ export default function Home() {
                 </h3>
               </div>
               <p className="mt-5 text-base leading-relaxed text-slate-600">
-                Wartet darauf, dass du manuell Daten einträgst, während du
-                eigentlich Kundenprojekte abarbeiten musst.
+                Wartet darauf, dass du Anfragen, Angebote und Kontakte manuell
+                pflegst – während die fast fertige Website schon auf
+                Kunden-Feedback wartet.
               </p>
               <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-white p-3">
                 <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -465,8 +611,9 @@ export default function Home() {
                 </h3>
               </div>
               <p className="mt-5 text-base leading-relaxed text-slate-600">
-                Zeigt dir 40 Aufgaben, aber verrät dir nicht, welche davon heute
-                den größten Umsatz bringt.
+                Zeigt dir 40 Aufgaben aus drei Kundenprojekten – verrät dir
+                aber nicht, welche heute wirklich einen Launch, eine Abnahme
+                oder ein neues Angebot näher bringt.
               </p>
               <div className="mt-6 space-y-1.5">
                 {[
@@ -493,37 +640,31 @@ export default function Home() {
             <div className="relative rounded-3xl border-2 border-blue-500/80 bg-slate-900 p-8 text-white shadow-[0_0_40px_-5px_rgba(59,130,246,0.5)] ring-1 ring-blue-400/40">
               <div className="absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-blue-500/30 via-transparent to-indigo-500/20 blur-xl" />
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/40">
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    aria-hidden
-                  >
-                    <path d="M12 2l1.8 5.5H19l-4.4 3.2L16.2 16 12 12.8 7.8 16l1.6-5.3L5 7.5h5.2L12 2z" />
-                  </svg>
-                </span>
-                <h3 className="text-lg font-semibold">Sparr</h3>
+                <SparrLogo variant="dark" size="md" />
                 <span className="ml-auto rounded-full bg-blue-500/20 px-2.5 py-1 text-xs font-medium text-blue-300">
                   KI-Coach
                 </span>
               </div>
               <p className="mt-5 text-base leading-relaxed text-slate-300">
-                Dein vollwertiger KI-Coach. Analysiert Pipelines, schreibt
-                E-Mails, trifft strategische Entscheidungen.
+                Dein KI-Coach hilft dir bei schwierigen Projekt-Entscheidungen
+                und plant jeden Morgen deinen Tag. Du weißt sofort, welches
+                Kundenprojekt heute den nächsten Schritt braucht – statt
+                zwischen 40 To-Dos und drei Vorschau-Versionen zu raten. Sparr
+                bringt Klarheit zwischen Briefing, Abnahme und Launch und
+                nimmt dir die Tipparbeit ab.
               </p>
               <div className="mt-6 grid grid-cols-3 gap-2">
                 {[
-                  { label: "Pipeline", icon: "📊" },
-                  { label: "E-Mails", icon: "✉️" },
-                  { label: "Coaching", icon: "🧭" },
+                  { label: "Klarheit", Icon: LuTarget },
+                  { label: "E-Mails", Icon: LuMail },
+                  { label: "Coaching", Icon: LuCompass },
                 ].map((f) => (
                   <div
                     key={f.label}
                     className="rounded-xl border border-white/10 bg-white/5 p-3 text-center"
                   >
-                    <div className="text-base">{f.icon}</div>
-                    <div className="mt-1 text-xs font-medium text-slate-200">
+                    <f.Icon className="mx-auto h-5 w-5 text-blue-300" />
+                    <div className="mt-1.5 text-xs font-medium text-slate-200">
                       {f.label}
                     </div>
                   </div>
@@ -540,8 +681,14 @@ export default function Home() {
           <div className="grid items-center gap-12 md:grid-cols-[auto,1fr]">
             <div className="relative mx-auto h-32 w-32 shrink-0 md:h-40 md:w-40">
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-200 to-indigo-200 blur-2xl" />
-              <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-slate-200 to-slate-300 text-3xl font-semibold text-slate-700 shadow-xl">
-                T
+              <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-slate-200 to-slate-300 shadow-xl">
+                <Image
+                  src="/Portrait.png"
+                  alt="Thomas Hruby, Gründer von Sparr"
+                  fill
+                  sizes="(min-width: 768px) 160px, 128px"
+                  className="object-cover object-[50%_42.5%]"
+                />
               </div>
             </div>
             <div>
@@ -549,23 +696,28 @@ export default function Home() {
                 Wer baut Sparr?
               </span>
               <h2 className="mt-2 text-2xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-3xl">
-                &ldquo;Ich saß vor 17 offenen To-Dos und hatte keine Ahnung,
-                welches mich heute weiterbringt.&rdquo;
+                &ldquo;Ich saß vor sieben offenen Kundenprojekten und wusste
+                nicht, welches heute den nächsten Schritt braucht.&rdquo;
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-slate-600">
                 Ich bin Thomas und führe selbst eine kleine Webdesign-Agentur.
-                Mein Problem war nie, dass ich Aufgaben vergessen habe. Mein
-                Problem war, dass ich vor 17 offenen To-Dos saß und absolut
-                keine Ahnung hatte, welche davon mich heute geschäftlich
-                weiterbringt und Umsatz generiert. Sparr ist genau dafür da: Ein
-                digitaler COO, der den Lärm ausblendet und dir strategische
-                Entscheidungen abnimmt.
+                Mein Problem war nie, dass ich Tasks vergessen habe. Mein
+                Problem war, dass ich vor sieben laufenden Kundenprojekten
+                saß, drei Angeboten, die auf Antwort warteten, einer fast
+                fertigen Website, die auf Abnahme wartete – und keine Ahnung
+                hatte, womit ich heute beginne, damit am Monatsende ein neuer
+                Auftrag, ein
+                abgenommener Launch oder ein verlängerter Retainer steht.
+                Sparr ist genau dafür gebaut – von einem Webdesigner für
+                Webdesigner und kleine Agenturen. Deine digitale rechte Hand,
+                die zwischen Briefing, Nachfassen und Launch den Lärm
+                ausblendet und dir die schweren Entscheidungen abnimmt.
               </p>
               <div className="mt-6 text-sm font-medium text-slate-900">
                 Thomas
                 <span className="font-normal text-slate-500">
                   {" "}
-                  · Founder, Sparr
+                  · Webdesigner & Gründer, Sparr.
                 </span>
               </div>
             </div>
@@ -584,8 +736,8 @@ export default function Home() {
               In 4 Schritten zum Fokus
             </h2>
             <p className="mt-4 text-lg text-slate-400">
-              Vom Onboarding zur Ausführung – ohne dass du dein Business neu
-              aufbauen musst.
+              Vom Onboarding bis zur Abnahme – ohne dass du deinen
+              Projekt-Alltag neu aufbauen musst.
             </p>
           </div>
 
@@ -600,23 +752,26 @@ export default function Home() {
                   <span className="text-slate-300">Schritt 1</span>
                 </div>
                 <h3 className="mt-4 text-2xl font-semibold sm:text-3xl">
-                  Kontext herstellen
+                  Trag deine offenen Website-Projekte ein
                 </h3>
                 <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-400">
-                  Trag in wenigen Minuten deine offenen Deals, deine Quartals-
-                  Ziele und deine wichtigsten Kunden ein – ganz ohne langes
-                  Setup oder Datenmigration. Sparr braucht nur die Basics (Name,
-                  Wert, Status), um sofort zu verstehen, wo dein Business heute
-                  steht und welche Hebel wirklich zählen.
+                  Kein nerviges Setup, keine Datenmigration, kein
+                  &bdquo;erst mal alles eintragen&ldquo;. Du beantwortest ein
+                  paar einfache Fragen im Chat und nennst deine offenen
+                  Kundenprojekte – und dein Coach versteht sofort, welches
+                  Angebot raus ist, welche fast fertige Website auf Abnahme
+                  wartet und welcher Retainer-Kunde wieder Aufmerksamkeit
+                  braucht. So
+                  einfach, dass du heute noch loslegen kannst.
                 </p>
               </div>
               <div className="order-2 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-2xl">
                 <div className="text-xs uppercase tracking-wider text-slate-500">
-                  Onboarding
+                  Neues Kundenprojekt
                 </div>
                 <div className="mt-4 space-y-3">
                   {[
-                    { label: "Deal Name", value: "Müller GmbH – Website" },
+                    { label: "Projekt", value: "Müller GmbH – Website" },
                     { label: "Wert", value: "€ 8.400" },
                     { label: "Status", value: "Angebot raus" },
                     { label: "Letzter Kontakt", value: "vor 9 Tagen" },
@@ -638,7 +793,7 @@ export default function Home() {
                   type="button"
                   className="mt-5 w-full rounded-lg bg-blue-500 py-2.5 text-sm font-medium text-white transition hover:bg-blue-400"
                 >
-                  Deal speichern
+                  Projekt speichern
                 </button>
               </div>
             </div>
@@ -656,20 +811,20 @@ export default function Home() {
                   {[
                     {
                       n: 1,
-                      t: "Follow-up Müller GmbH",
-                      d: "Hot · 9 Tage offen",
+                      t: "Nachfassen Müller GmbH",
+                      d: "Heißes Angebot · 9 Tage offen",
                       v: "€ 8.400",
                     },
                     {
                       n: 2,
                       t: "Angebot Bauer & Co finalisieren",
-                      d: "Heute deadline",
+                      d: "Erstgespräch nächste Woche",
                       v: "€ 12.000",
                     },
                     {
                       n: 3,
-                      t: "Kaltakquise: 5 neue Leads",
-                      d: "Pipeline füllen",
+                      t: "Lead-Recherche: 5 neue Anfragen",
+                      d: "Neue Projekte für Q3",
                       v: "Pot.",
                     },
                   ].map((it) => (
@@ -704,11 +859,13 @@ export default function Home() {
                   Tägliche Planung
                 </h3>
                 <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-400">
-                  Jeden Morgen um 8:00 Uhr liegt dein persönliches Briefing
-                  bereit: Die drei Aktionen mit dem größten Umsatz-Hebel,
-                  sortiert nach Deal-Wert, Liegezeit und Abschluss­wahrscheinlichkeit.
-                  Kein Rauschen, kein Scrollen durch 40 To-Dos – nur das, was
-                  heute wirklich Geld bringt.
+                  Jeden Morgen um 8:00 Uhr liegt dein Briefing bereit: die
+                  drei Aktionen mit dem größten Hebel für deine
+                  Kundenprojekte – sortiert nach Projektwert, Liegezeit und
+                  Abnahme-Wahrscheinlichkeit. Kein Rauschen, kein Scrollen
+                  durch 40 To-Dos aus fünf Projekten – nur das, was heute
+                  einen Launch, ein Angebot oder einen neuen Retainer näher
+                  bringt.
                 </p>
               </div>
             </div>
@@ -726,28 +883,19 @@ export default function Home() {
                   AI Coaching
                 </h3>
                 <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-400">
-                  Steckst du bei einem Angebot fest oder bist unsicher in einem
-                  Preis-Gespräch? Sparr ist dein strategischer Sparringspartner
-                  – 24/7 erreichbar, kennt dein Business im Detail und gibt dir
+                  Steckst du beim Webdesign-Angebot für einen neuen Kunden
+                  fest oder verhandelst gerade einen Retainer? Sparr ist dein
+                  strategischer Sparringspartner – 24/7 erreichbar, kennt
+                  deine Kundenprojekte im Detail und gibt dir
                   Klartext-Antworten statt generischer Ratschläge aus dem
-                  Internet. Engpässe und schwere Entscheidungen löst du nicht
-                  mehr alleine.
+                  Internet. Preisfragen, Diskussionen über den Leistungsumfang
+                  und schwierige Kunden-Mails löst du nicht mehr alleine.
                 </p>
               </div>
               <div className="order-2 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 to-slate-900 p-6 shadow-2xl">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs text-slate-400">
                   <div className="flex items-center gap-2">
-                    <span className="relative grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-3.5 w-3.5"
-                        fill="currentColor"
-                        aria-hidden
-                      >
-                        <path d="M12 2l1.8 5.5H19l-4.4 3.2L16.2 16 12 12.8 7.8 16l1.6-5.3L5 7.5h5.2L12 2z" />
-                      </svg>
-                    </span>
-                    <span className="text-white">Sparr Coach</span>
+                    <SparrLogo variant="dark" size="sm" />
                   </div>
                   <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] text-blue-300">
                     Strategie
@@ -760,11 +908,12 @@ export default function Home() {
                   </div>
                   <div className="max-w-[90%] rounded-2xl rounded-tl-md bg-gradient-to-br from-blue-600 to-indigo-600 px-3 py-2 text-sm leading-relaxed text-white shadow-md">
                     Stand halten. Du hast 3 weitere Hot Leads im gleichen
-                    Segment. Biete stattdessen Scope-Reduktion an – das schützt
-                    deinen Preis und gibt ihm das Gefühl zu &bdquo;gewinnen&ldquo;.
+                    Segment. Biete stattdessen weniger Leistung zu einem
+                    günstigeren Preis an – das schützt deinen Wert und gibt
+                    ihm das Gefühl zu &bdquo;gewinnen&ldquo;.
                   </div>
-                  <div className="ml-auto max-w-[60%] rounded-2xl rounded-tr-md bg-white/10 px-3 py-2 text-sm text-slate-200">
-                    Welcher Scope?
+                  <div className="ml-auto max-w-[70%] rounded-2xl rounded-tr-md bg-white/10 px-3 py-2 text-sm text-slate-200">
+                    Was soll ich konkret streichen?
                   </div>
                 </div>
 
@@ -830,14 +979,175 @@ export default function Home() {
                   Aufgaben erledigen lassen
                 </h3>
                 <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-400">
-                  Sparr greift dir beim Schreiben deiner Follow-up-E-Mails
-                  aktiv unter die Arme, recherchiert passende Leads für deine
-                  Kaltakquise und bereitet komplette Angebots­entwürfe vor. Du
-                  gibst nur noch das finale Go – die Tipparbeit und die
-                  Vorbereitung übernimmt dein Coach.
+                  Sparr greift dir beim Nachfassen an Kunden aktiv unter die
+                  Arme, recherchiert passende Wunschkunden für neue
+                  Website-Projekte und bereitet komplette Webdesign-Angebote
+                  vor – inklusive Hosting, Wartung und realistischer
+                  Aufwands­schätzung. Du gibst nur noch das finale Go.
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* DREI EBENEN – LEISTUNG */}
+      <section
+        id="features"
+        className="border-t border-slate-200/60 bg-white"
+      >
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="text-sm font-medium tracking-wide text-blue-600">
+              Drei Ebenen. Jeden Tag.
+            </span>
+            <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              Sparr sagt dir nicht nur, was du tun sollst — er erledigt einen
+              Teil davon selbst.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+              Erst weiß du, wo du beim Webdesign‑Business anfangen musst –
+              dann bekommst du konkrete Hilfe beim Schreiben und Entscheiden –
+              parallel arbeitet Sparr im Hintergrund an Leads und Angeboten.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-14 grid max-w-5xl gap-5 sm:grid-cols-1 lg:grid-cols-3">
+            <div className="group relative rounded-3xl border border-slate-200 bg-slate-50 p-7 transition hover:-translate-y-1 hover:border-slate-300 hover:bg-white hover:shadow-xl hover:shadow-slate-900/5">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition-[box-shadow] duration-300 group-hover:shadow-xl group-hover:shadow-blue-500/35">
+                <LuCalendarCheck className="h-6 w-6" aria-hidden />
+              </span>
+              <h3 className="mt-5 text-lg font-semibold leading-snug text-slate-900">
+                1 · Zeigt dir, was heute zählt
+              </h3>
+              <p className="mt-3 text-base leading-relaxed text-slate-600">
+                Jeden Morgen um 8:00 Uhr: die zwei bis drei Schritte aus deinen
+                Kundenprojekten, sortiert nach Projektwert, Liegezeit und
+                Abnahme-Wahrscheinlichkeit. Kein Scrollen durch 40 To-Dos.
+              </p>
+            </div>
+
+            <div className="group relative rounded-3xl border border-slate-200 bg-slate-50 p-7 transition hover:-translate-y-1 hover:border-slate-300 hover:bg-white hover:shadow-xl hover:shadow-slate-900/5">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition-[box-shadow] duration-300 group-hover:shadow-xl group-hover:shadow-blue-500/35">
+                <LuMail className="h-6 w-6" aria-hidden />
+              </span>
+              <h3 className="mt-5 text-lg font-semibold leading-snug text-slate-900">
+                2 · Hilft dir, es umzusetzen
+              </h3>
+              <p className="mt-3 text-base leading-relaxed text-slate-600">
+                Die Follow-up-Mail liegt fertig vor dir, in deinem Ton.
+                Steckst du in einer Preisverhandlung? Sparr kennt deine
+                Projekte und gibt Klartext — keine generischen Tipps.
+              </p>
+            </div>
+
+            <div className="group relative rounded-3xl border border-slate-200 bg-slate-50 p-7 transition hover:-translate-y-1 hover:border-slate-300 hover:bg-white hover:shadow-xl hover:shadow-slate-900/5">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition-[box-shadow] duration-300 group-hover:shadow-xl group-hover:shadow-blue-500/35">
+                <LuCompass className="h-6 w-6" aria-hidden />
+              </span>
+              <h3 className="mt-5 text-lg font-semibold leading-snug text-slate-900">
+                3 · Macht einen Teil der Arbeit selbst
+              </h3>
+              <p className="mt-3 text-base leading-relaxed text-slate-600">
+                Während du baust, recherchiert Sparr neue Leads und bereitet
+                Angebotsentwürfe vor — inklusive realistischer Preise,
+                Hosting und Wartung. Du gibst nur das finale Go.
+              </p>
+            </div>
+          </div>
+
+          <p className="mx-auto mt-14 max-w-2xl text-center text-lg font-medium text-slate-800">
+            Kein weiteres Tool zum Verwalten. Sparr arbeitet — während du
+            arbeitest.
+          </p>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="border-t border-slate-200/60 bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-24 lg:px-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="text-sm font-medium uppercase tracking-wider text-blue-600">
+              FAQ
+            </span>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              Häufig gestellte Fragen
+            </h2>
+            <p className="mt-4 text-lg text-slate-600">
+              Alles, was du vor dem Eintragen in die Warteliste wissen solltest.
+            </p>
+          </div>
+
+          {/*
+            Zwei unabhängige Flex-Spalten statt CSS-Grid: So beeinflusst
+            das Öffnen einer Karte nur die eigene Spalte – die
+            gegenüberliegende Spalte rutscht nicht mit nach unten.
+          */}
+          <div className="mt-14 grid items-start gap-4 md:grid-cols-2">
+            {[0, 1].map((colIndex) => (
+              <div key={colIndex} className="flex flex-col gap-4">
+                {faqs
+                  .map((item, i) => ({ item, i }))
+                  .filter(({ i }) => i % 2 === colIndex)
+                  .map(({ item, i }) => {
+                    const isOpen = openFaq === i;
+                    return (
+                      <div
+                        key={i}
+                        className={`rounded-2xl border transition ${
+                          isOpen
+                            ? "border-slate-300 bg-white shadow-lg shadow-slate-900/5"
+                            : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setOpenFaq(isOpen ? null : i)}
+                          aria-expanded={isOpen}
+                          className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left"
+                        >
+                          <span className="text-base font-medium text-slate-900">
+                            {item.question}
+                          </span>
+                          <span
+                            className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 transition ${
+                              isOpen ? "rotate-45" : ""
+                            }`}
+                            aria-hidden
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path
+                                d="M12 5v14M5 12h14"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        <div
+                          className={`grid overflow-hidden px-5 transition-all duration-300 ${
+                            isOpen
+                              ? "grid-rows-[1fr] pb-5 opacity-100"
+                              : "grid-rows-[0fr] opacity-0"
+                          }`}
+                        >
+                          <div className="min-h-0">
+                            <p className="text-base leading-relaxed text-slate-600">
+                              {item.answer}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -857,11 +1167,11 @@ export default function Home() {
               Angebot
             </span>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              Für Alle auf der Warteliste
+              Für alle Webdesigner auf der Warteliste
             </h2>
             <p className="mt-4 text-lg text-slate-600">
-              Du sicherst dir nicht nur einen frühen Zugang – sondern einen
-              dauerhaft besseren Preis.
+              Du sicherst dir nicht nur frühen Zugang – sondern den
+              niedrigsten Preis, zu dem Sparr je erhältlich sein wird.
             </p>
           </div>
 
@@ -871,37 +1181,31 @@ export default function Home() {
               <div className="absolute right-6 top-6">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-blue-500/30">
                   <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                  Early-Bird Deal
+                  Geschlossene Beta
                 </span>
               </div>
 
               <div className="text-sm font-medium uppercase tracking-wider text-blue-600">
-                Beta-Launch Preis
+                Was du als Beta-Teilnehmer bekommst
               </div>
 
-              <div className="mt-5 flex items-end gap-3">
-                <span className="text-6xl font-semibold tracking-tight text-slate-900">
-                  €30
-                </span>
-                <span className="mb-2 text-base text-slate-500">/ Monat</span>
-              </div>
+              <h3 className="mt-4 text-2xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-3xl">
+                Der komplette Sparr-Zugang – zum günstigsten Preis, den es je geben wird.
+              </h3>
 
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-slate-400 line-through">€60 / Monat</span>
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                  50% Rabatt
-                </span>
-                <span className="text-slate-500">für die ersten 60 Tage</span>
-              </div>
+              <p className="mt-4 text-base leading-relaxed text-slate-600">
+                Wer jetzt dabei ist, zahlt später weniger als alle, die nach
+                dem Launch kommen.
+              </p>
 
               <div className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
               <ul className="mt-8 space-y-3.5 text-sm text-slate-700">
                 {[
                   "Voller Zugang zu allen Sparr-Features",
-                  "Tägliches 8:00 Uhr Briefing mit Umsatz-Hebeln",
-                  "Unbegrenztes AI-Strategie-Coaching",
-                  "E-Mail-Drafting & automatische Lead-Recherche",
+                  "Tägliches 8:00 Uhr Briefing zu deinen Kundenprojekten",
+                  "Unbegrenztes Strategie-Coaching – von Preisfrage bis Leistungsumfang",
+                  "Nachfass-Mails & Lead-Recherche für neue Website-Projekte",
                   "Persönlicher Support während der gesamten Beta",
                 ].map((b) => (
                   <li key={b} className="flex items-start gap-3">
@@ -953,9 +1257,9 @@ export default function Home() {
                       100% unverbindlich.
                     </span>{" "}
                     Die Warteliste ist kostenlos. Du musst jetzt nichts zahlen
-                    und nichts committen – sobald dein Zugang bereit ist,
-                    entscheidest du in Ruhe, ob Sparr wirklich für dich passt.
-                    Volles Risiko bei uns.
+                    und dich auf nichts festlegen – sobald dein Zugang bereit
+                    ist, entscheidest du in Ruhe, ob Sparr wirklich in deinen
+                    Projekt-Alltag passt.
                   </p>
                 </div>
               </div>
@@ -964,100 +1268,145 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="border-t border-slate-200/60 bg-white">
+      {/* PERSÖNLICHER KONTAKT */}
+      <section
+        id="kontakt"
+        className="border-t border-slate-200/60 bg-[#fafafa]"
+      >
         <div className="mx-auto max-w-6xl px-6 py-24 lg:px-10">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-sm font-medium uppercase tracking-wider text-blue-600">
-              FAQ
+              Noch nicht überzeugt?
             </span>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              Häufig gestellte Fragen
+              Vereinbare ein Meeting mit mir.
             </h2>
             <p className="mt-4 text-lg text-slate-600">
-              Alles, was du vor dem Eintragen in die Warteliste wissen solltest.
+              Stell mir alle deine Fragen direkt – von Webdesigner zu
+              Webdesigner. Kein Sales-Pitch, kein Druck. Einfach 20 Minuten
+              Klartext zu Sparr, deinen offenen Projekten und ob das Ganze in
+              deinen Alltag passt.
             </p>
           </div>
 
-          {/*
-            Grid mit items-start + auto-rows-min, damit sich beim Öffnen
-            einer Frage NUR die jeweilige Kachel vergrößert und die
-            gegenüberliegende Spalte ihre Höhe behält.
-          */}
-          <div className="mt-14 grid auto-rows-min items-start gap-4 md:grid-cols-2">
-            {faqs.map((item, i) => {
-              const isOpen = openFaq === i;
-              return (
-                <div
-                  key={i}
-                  className={`self-start rounded-2xl border transition ${
-                    isOpen
-                      ? "border-slate-300 bg-white shadow-lg shadow-slate-900/5"
-                      : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaq(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                    className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left"
-                  >
-                    <span className="text-base font-medium text-slate-900">
-                      {item.question}
-                    </span>
-                    <span
-                      className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 transition ${
-                        isOpen ? "rotate-45" : ""
-                      }`}
-                      aria-hidden
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path
-                          d="M12 5v14M5 12h14"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  </button>
-                  <div
-                    className={`grid overflow-hidden px-5 transition-all duration-300 ${
-                      isOpen
-                        ? "grid-rows-[1fr] pb-5 opacity-100"
-                        : "grid-rows-[0fr] opacity-0"
-                    }`}
-                  >
-                    <div className="min-h-0">
-                      <p className="text-base leading-relaxed text-slate-600">
-                        {item.answer}
-                      </p>
-                    </div>
+          <div className="mx-auto mt-14 grid max-w-5xl items-center gap-10 md:grid-cols-2">
+            {/* Photo */}
+            <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-100 to-slate-200 shadow-2xl shadow-slate-900/10 md:max-w-none">
+              <Image
+                src="/Portrait.png"
+                alt="Thomas Hruby"
+                fill
+                sizes="(min-width: 768px) 480px, 320px"
+                className="object-cover object-[50%_42.5%]"
+              />
+            </div>
+
+            {/* Contact cards */}
+            <div className="space-y-3">
+              <a
+                href="https://wa.me/4367762821420"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/10"
+              >
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-emerald-500 text-white shadow-md">
+                  <FaWhatsapp className="h-6 w-6" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                    WhatsApp
+                  </div>
+                  <div className="mt-0.5 truncate text-base font-semibold text-slate-900">
+                    +43 677 6282 1420
                   </div>
                 </div>
-              );
-            })}
+                <span className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-slate-500">
+                  →
+                </span>
+              </a>
+
+              <a
+                href="tel:+4367762853686"
+                className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10"
+              >
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-md">
+                  <LuPhone className="h-6 w-6" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                    Telefon
+                  </div>
+                  <div className="mt-0.5 truncate text-base font-semibold text-slate-900">
+                    +43 677 6285 3686
+                  </div>
+                </div>
+                <span className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-slate-500">
+                  →
+                </span>
+              </a>
+
+              <a
+                href="mailto:hruby@thomashruby.at"
+                className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10"
+              >
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-indigo-600 text-white shadow-md">
+                  <LuMail className="h-6 w-6" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                    E-Mail
+                  </div>
+                  <div className="mt-0.5 truncate text-base font-semibold text-slate-900">
+                    hruby@thomashruby.at
+                  </div>
+                </div>
+                <span className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-slate-500">
+                  →
+                </span>
+              </a>
+
+              <a
+                href="https://www.thomashruby.at"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-500/10"
+              >
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-slate-900 text-white shadow-md">
+                  <LuGlobe className="h-6 w-6" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                    Website
+                  </div>
+                  <div className="mt-0.5 truncate text-base font-semibold text-slate-900">
+                    www.thomashruby.at
+                  </div>
+                </div>
+                <span className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-slate-500">
+                  →
+                </span>
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section className="relative overflow-hidden bg-slate-900 text-white">
+      {/* FINAL CTA — Haupt-Anker für Warteliste (Navbar, Angebot-Link) */}
+      <section
+        id="waitlist"
+        className="relative scroll-mt-[5.5rem] overflow-hidden bg-slate-900 text-white"
+      >
         <div className="pointer-events-none absolute inset-0 opacity-50">
           <div className="absolute -top-20 left-1/2 h-[400px] w-[800px] -translate-x-1/2 rounded-full bg-blue-600/30 blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-3xl px-6 py-24 text-center lg:px-10">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Bereit, das Rauschen abzustellen?
+            Bereit, Ordnung in deine Kundenprojekte zu bringen?
           </h2>
           <p className="mt-4 text-lg text-slate-300">
-            Sichere dir einen der exklusiven Plätze – inklusive 50% Rabatt für
-            die ersten 60 Tage.
+            Sichere dir einen der exklusiven Plätze – inklusive 50% Rabatt
+            für die ersten 60 Tage, in denen du Sparr in deinen
+            Projekt-Alltag holst.
           </p>
           <form
             onSubmit={handleSubmit}
@@ -1073,35 +1422,63 @@ export default function Home() {
             />
             <button
               type="submit"
-              disabled={submitted}
+              disabled={submitted || signupLoading}
               className="h-12 rounded-full bg-blue-500 px-6 text-sm font-medium text-white transition hover:bg-blue-400 disabled:opacity-60"
             >
-              {submitted ? "Du bist drin ✓" : "Auf die Warteliste"}
+              {submitted
+                ? "Du bist drin ✓"
+                : signupLoading
+                  ? "Ein Moment …"
+                  : "Auf die Warteliste"}
             </button>
           </form>
+          {signupError ? (
+            <p
+              className="mx-auto mt-3 max-w-lg text-xs text-red-300"
+              role="alert"
+            >
+              {signupError}
+            </p>
+          ) : null}
           <p className="mt-4 text-xs text-slate-400">
             Kostenloses Eintragen für die Warteliste · kein Zahlungsmittel ·
             jederzeit kündbar.
           </p>
+
+          {/* Trust card */}
+          <div className="mx-auto mt-8 max-w-lg rounded-2xl border border-white/10 bg-white/5 p-4 text-left backdrop-blur">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-500/20 text-emerald-300">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  aria-hidden
+                >
+                  <path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z" />
+                </svg>
+              </span>
+              <p className="text-xs leading-relaxed text-slate-300">
+                <span className="font-semibold text-white">
+                  100% unverbindlich.
+                </span>{" "}
+                Die Warteliste ist kostenlos. Du musst jetzt nichts zahlen und
+                dich auf nichts festlegen – sobald dein Zugang bereit ist,
+                entscheidest du in Ruhe, ob Sparr wirklich in deinen
+                Projekt-Alltag passt.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-slate-500 md:flex-row lg:px-10">
-          <div className="flex items-center gap-2">
-            <span className="grid h-6 w-6 place-items-center rounded-md bg-slate-900 text-white">
-              <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3">
-                <path
-                  d="M5 12l4 4L19 6"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="font-semibold text-slate-900">Sparr</span>
+          <div className="flex items-center gap-3">
+            <SparrLogo size="sm" />
             <span>© {new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-6">
@@ -1120,8 +1497,8 @@ export default function Home() {
               Datenschutz
             </a>
             <a
-              href="#waitlist"
-              onClick={handleScrollLink("waitlist")}
+              href="#kontakt"
+              onClick={handleScrollLink("kontakt")}
               className="transition hover:text-slate-900"
             >
               Kontakt
@@ -1133,6 +1510,7 @@ export default function Home() {
       <SurveyOverlay
         open={surveyOpen}
         email={email}
+        waitlistId={waitlistId}
         onClose={() => setSurveyOpen(false)}
       />
     </div>
